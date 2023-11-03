@@ -1,7 +1,10 @@
 package net.vpg;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
@@ -11,6 +14,17 @@ public class Calculator {
     private static final DoubleBinaryOperator O2 = (x, y) -> x * y;
     private static final DoubleBinaryOperator O3 = Math::pow;
     private static final Pattern tokens = Pattern.compile("\\(|\\)|\\+|-|\\*|/|\\^|e|pi|cosec|sec|cot|sin|cos|tan|abs|log|[\\d.]+");
+    private static final Map<String, DoubleUnaryOperator> functions = new HashMap<>() {{
+        put("-", n -> -n);
+        put("sin", Math::sin);
+        put("cos", Math::cos);
+        put("tan", Math::tan);
+        put("cosec", n -> 1 / Math.sin(n));
+        put("sec", n -> 1 / Math.cos(n));
+        put("cot", n -> 1 / Math.tan(n));
+        put("log", Math::log);
+        put("abs", Math::abs);
+    }};
     private String s = "";
     private Matcher m;
 
@@ -43,28 +57,7 @@ public class Calculator {
             case "e":
                 return Math.exp(1);
         }
-        double n = next(null, 0);
-        switch (token) {
-            case "-":
-                return -n;
-            case "sin":
-                return Math.sin(n);
-            case "cos":
-                return Math.cos(n);
-            case "tan":
-                return Math.tan(n);
-            case "cosec":
-                return 1 / Math.sin(n);
-            case "sec":
-                return 1 / Math.cos(n);
-            case "cot":
-                return 1 / Math.tan(n);
-            case "log":
-                return Math.log(n);
-            case "abs":
-                return Math.abs(n);
-        }
-        return n;
+        return functions.getOrDefault(token, DoubleUnaryOperator.identity()).applyAsDouble(next(null, 0));
     }
 
     private double list(DoubleBinaryOperator op, boolean b, Double d) {
